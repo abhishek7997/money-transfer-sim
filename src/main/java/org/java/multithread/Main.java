@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class Main {
@@ -23,42 +24,18 @@ public class Main {
         ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(100);
 
         for(int i=0;i<5;i++) {
-            // pick two accounts
-            BankAccount b1 = bankAccounts.get(i % bankAccounts.size());
-            BankAccount b2 = bankAccounts.get((i + 1) % bankAccounts.size());
-            int amount = 2*i + 3;
-
-            Thread task = new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        transfer(b1, b2, amount);
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
-                private boolean transfer(BankAccount b1, BankAccount b2, int amount) {
-                    log.info("{} : Transferring from {} to {}", Thread.currentThread().getName(), b1.getId(), b2.getId());
-                    log.info("{} : b1.balance={}, b2.balance={}, transferAmount={}", Thread.currentThread().getName(), b1.getBalance(), b2.getBalance(), amount);
-
-                    boolean status = b1.withdraw(amount);
-
-                    if (!status) {
-                        log.error("Insufficient balance.");
-                        return false;
-                    }
-
-                    b2.deposit(amount);
-                    return true;
-                }
-            };
-
+            Thread task = new Thread(new UserThread(bankAccounts));
             threadPoolExecutor.submit(task);
         }
 
         threadPoolExecutor.shutdown();
+        try {
+            while (!threadPoolExecutor.awaitTermination(1, TimeUnit.MINUTES)) {
+                System.out.println("Not yet. Still waiting for termination");
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         log.info("==== PROGRAM END ====");
     }

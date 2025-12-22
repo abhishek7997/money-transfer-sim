@@ -17,14 +17,28 @@ public class BankAccount {
     }
 
     public void deposit(int amount) {
-        balance += amount;
-        log.info("Balance after deposit: {}", balance);
+        int curr = this.balance;
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        curr += amount;
+        this.balance = curr;
+//        log.info("Balance after deposit: {}", this.balance);
     }
 
     public boolean withdraw(int amount) {
-        if (balance >= amount) {
-            balance -= amount;
-            log.info("Balance after withdraw: {}", balance);
+        int curr = this.balance;
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        if (curr >= amount) {
+            curr -= amount;
+            this.balance = curr;
+//            log.info("Balance after withdraw: {}", this.balance);
             return true;
         }
 

@@ -16,9 +16,10 @@ public class Main {
         // create 5 bank accounts
         List<BankAccount> bankAccounts = new ArrayList<>();
         for(int i=1;i<=5;i++) {
-            int initialAmount = i*1417 + i*i;
-            bankAccounts.add(new BankAccount(String.valueOf(i), initialAmount));
+            bankAccounts.add(new BankAccount(String.valueOf(i), 1000));
         }
+
+        final int expectedTotal = 5 * 1000;
 
         // create 100 thread (users)
         ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(100);
@@ -30,12 +31,19 @@ public class Main {
 
         threadPoolExecutor.shutdown();
         try {
-            while (!threadPoolExecutor.awaitTermination(1, TimeUnit.MINUTES)) {
+            while (!threadPoolExecutor.awaitTermination(10, TimeUnit.MINUTES)) {
                 System.out.println("Not yet. Still waiting for termination");
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        int currTotal = 0;
+        for(BankAccount b: bankAccounts) {
+            currTotal += b.getBalance();
+        }
+
+        log.info("EXPECTED TOTAL: {}, ACTUAL TOTAL: {}", expectedTotal, currTotal); // without locks, actual total is usually not equal to expected total
 
         log.info("==== PROGRAM END ====");
     }
